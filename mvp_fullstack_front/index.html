@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="styles.css">
+
+    <title>Environmental compensation calculator</title>
+</head>
+
+<body>
+     <!-- Cabeçalho -->
+    <header>
+        <div class="title">
+            <h1>Environmental compensation calculator</h1>
+        </div>
+        <div class="banner">
+            <!-- se quiser usar sua imagem local, troque pelo caminho: market.jpg -->
+            <img src="img/env_fig.jpeg" alt="Comp">
+        </div>
+    </header>
+
+     <!-- Formulário para adicionar árvores -->
+    <section class="newItem">
+        <input type="text" id="treeName" placeholder="Nome da espécie (ex: ipe)">
+        <input type="number" id="treeQuantity" placeholder="Quantidade" min="1">
+
+        <select id="treeGroup">
+            <option value="native">Nativa</option>
+            <option value="exotic">Exótica</option>
+        </select>
+
+        <select id="treeMunicipality">
+            <option value="">Selecione o município</option>
+        </select>
+
+        <button onclick="addItem()" class="addBtn">Adicionar à lista</button>
+        <button onclick="calculateTotal()" class="calcBtn">Calcular compensação</button>
+    </section>
+
+    <!-- Mensagens -->
+    <section class="messages">
+        <div id="errorBox"></div>
+        <div id="totalBox"></div>
+    </section>
+
+    <!-- Tabela com árvores do lote -->
+    <section class="items">
+        <table id="myTable">
+            <tr>
+                <th>Espécie</th>
+                <th>Quantidade</th>
+                <th>Tipo</th>
+                <th>Municipality</th>
+                <th>Comp./árvore</th>
+                <th>Comp. total item</th>
+                <th>
+                    <img src="https://cdn-icons-png.flaticon.com/512/126/126468.png"
+                         width="15" height="15" alt="Remover">
+                </th>
+            </tr>
+        </table>
+    </section>
+
+    <script src="scripts.js?v=11"></script>
+</body>
+</html>
