@@ -123,6 +123,7 @@ function addItem() {
   const qtyInput = byId("treeQuantity");
   const groupSelect = byId("treeGroup");
   const municipalitySelect = byId("isolatedMunicipality");
+  const endangeredSelect = byId("treeEndangered");  // NEW
   const errorBox = byId("errorBox");
   const table = byId("myTable");
 
@@ -137,6 +138,10 @@ function addItem() {
   const group = groupSelect.value;
   const municipality = municipalitySelect.value;
 
+  // lê o dropdown (se não existir ainda, assume false)
+  const endangeredValue = endangeredSelect ? endangeredSelect.value : "false";
+  const endangered = endangeredValue === "true";
+
   if (!qtyStr || Number(qtyStr) <= 0) {
     if (errorBox) errorBox.textContent = "Informe uma quantidade válida.";
     return;
@@ -147,7 +152,9 @@ function addItem() {
   }
 
   const quantidade = Number(qtyStr);
-  const item = { quantidade, group, municipality };
+
+  // agora o item também carrega o flag endangered
+  const item = { quantidade, group, municipality, endangered };
   isolatedItems.push(item);
 
   // Add row to table
@@ -172,6 +179,7 @@ function addItem() {
   qtyInput.value = "";
 }
 
+
 // =======================================================
 //  ISOLATED TREES: CALCULATE TOTAL COMPENSATION
 // =======================================================
@@ -194,7 +202,7 @@ async function calculateTotal() {
     const resp = await fetch(`${API_BASE}/api/compensacao/lote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: isolatedItems }),
+      body: JSON.stringify({ items: isolatedItems }), // já inclui endangered
     });
 
     const data = await resp.json();
@@ -202,15 +210,16 @@ async function calculateTotal() {
 
     if (!resp.ok) {
       if (errorBox) {
-        errorBox.textContent = data.erro || `Erro HTTP ${resp.status} na API.`;
+        errorBox.textContent = data.erro || data.error || `Erro HTTP ${resp.status} na API.`;
       }
       return;
     }
 
-    // Atualiza as linhas da tabela com comp./árvore e total por item
+    // ---- processed items (suporta nomes antigos e novos) ----
     const processed =
-      data["processed items"] || // chave que vem do backend
-      data.itens_processados ||  // fallback se você mudar no futuro
+      data.processed_items ||          // novo backend (snake_case)
+      data["processed items"] ||       // versão anterior com espaço
+      data.itens_processados ||        // fallback PT-BR
       [];
 
     if (table && Array.isArray(processed)) {
@@ -219,14 +228,26 @@ async function calculateTotal() {
         if (!row) return;
 
         // Índices certos: 3 = Comp./árvore, 4 = Comp. total item
-        if (row.cells[3]) row.cells[3].textContent = item.compensacao_por_arvore ?? "";
-        if (row.cells[4]) row.cells[4].textContent = item.compensacao_total_item ?? "";
+        if (row.cells[3]) {
+          row.cells[3].textContent =
+            item.compensacao_por_arvore != null
+              ? item.compensacao_por_arvore
+              : "";
+        }
+        if (row.cells[4]) {
+          row.cells[4].textContent =
+            item.compensacao_total_item != null
+              ? item.compensacao_total_item
+              : "";
+        }
       });
     }
 
+    // ---- total compensation (nomes antigos e novos) ----
     const total =
-      data["total compensation"] ??    // chave atual do backend
-      data.total_compensacao_geral ??  // caso mude no futuro
+      data.total_compensation ??       // novo
+      data["total compensation"] ??    // antigo
+      data.total_compensacao_geral ??
       data.total_compensacao_lote ??
       data.total ??
       0;
@@ -235,8 +256,10 @@ async function calculateTotal() {
       totalBox.textContent = `Compensação total do lote: ${total}`;
     }
 
+    // ---- itens sem regra (nomes antigos e novos) ----
     const semRegra =
-      data["items without compensation"] ||
+      data.items_without_compensation ||  // novo
+      data["items without compensation"] || // antigo
       data.itens_sem_regra ||
       [];
 
@@ -245,12 +268,12 @@ async function calculateTotal() {
         (errorBox.textContent ? " " : "") +
         "Alguns itens não tiveram regra de compensação.";
     }
-
   } catch (err) {
     console.error("Erro na requisição /api/compensacao/lote:", err);
     if (errorBox) errorBox.textContent = "Erro de conexão com a API.";
   }
 }
+
 
 // =======================================================
 //  PATCH: ADD PATCH ITEM

@@ -39,18 +39,36 @@ def load_compensacao_from_csv_once(force: bool = False):
         reader = csv.DictReader(f)
         rows = []
         for row in reader:
+            group = row["group"].strip()
+            municipality = row["municipality"].strip()
+            comp = int(row["compensation"])
+
+            # new column (optional)
+            end_str = row.get("endangered", "").strip()
+            if not end_str:
+                endangered = 1.0
+            else:
+                try:
+                    endangered = float(end_str)
+                except ValueError:
+                    endangered = 1.0   # fallback
+
             rows.append(
                 Compensation(
-                    group=row["group"].strip(),
-                    municipality=row["municipality"].strip(),
-                    compensation=int(row["compensation"])
+                    group=group,
+                    municipality=municipality,
+                    compensation=comp,
+                    endangered=endangered,
                 )
             )
 
-    session.add_all(rows)
-    session.commit()
+    if rows:
+        session.add_all(rows)
+        session.commit()
+        print("Compensation table loaded from CSV")
+
     session.close()
-    print("Compensation table loaded from CSV")
+
 
 def load_patch_compensacao_from_csv_once():
     """Carrega patch_compensation.csv uma única vez na tabela patch_compensation."""

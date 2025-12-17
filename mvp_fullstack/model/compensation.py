@@ -8,11 +8,13 @@ class Compensation(Base):
     group = Column(String())  
     municipality = Column(String())    # matches Produto.nome
     compensation = Column(Integer)               # e.g. R$, área, etc.
+    endangered = Column(Integer, default=1)
 
-    def __init__(self, group: str, municipality:str,compensation:int):
+    def __init__(self, group: str, municipality:str,compensation:int, endangered:int):
         self.group = group 
         self.municipality = municipality 
         self.compensation = compensation
+        self.endangered = endangered
 
 class SpeciesStatus(Base):
     __tablename__ = "species_status"

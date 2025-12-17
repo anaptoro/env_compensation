@@ -1,6 +1,6 @@
-group,municipality,compensation
-native,avare,2
-native,sorocaba,4
-native,piracicaba,3
-exotic,piracicaba,0
-exotic,cotia,0
+group,municipality,compensation,endangered
+native,avare,2,3
+native,sorocaba,4,2
+native,piracicaba,3,3
+exotic,piracicaba,1,1
+exotic,cotia,0,3

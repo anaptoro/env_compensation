@@ -5,7 +5,7 @@ from model import Session
 from model.compensation import Compensation, SpeciesStatus
 from model.patch_compensation import PatchCompensation
 from model.app_compensation import AppCompensation
-from model.utils import load_compensacao_from_csv_once,load_patch_compensacao_from_csv_once, load_species_status_from_csv_once,load_app_compensacao_from_csv_once
+from model.utils import load_compensacao_from_csv_once,load_patch_compensacao_from_csv_once,load_species_status_from_csv_once,load_app_compensacao_from_csv_once
 
 app = Flask(__name__)
 CORS(app)
@@ -113,7 +113,7 @@ def calcular_compensacao_lote():
 
     items = data.get("items")
     if not isinstance(items, list) or not items:
-        return jsonify({"error": "You need to sen a list with at least one item"}), 400
+        return jsonify({"error": "You need to send a list with at least one item"}), 400
 
     session = Session()
     resultados = []
@@ -124,11 +124,12 @@ def calcular_compensacao_lote():
         municipality = item.get("municipality")
         group = item.get("group")
         quantidade = item.get("quantidade")
+        endangered_flag = item.get("endangered", False)  # NEW
 
         if not municipality or quantidade is None:
             itens_sem_regra.append({
                 "index": idx,
-                "motivo": "Municipality and quantity cant be None",
+                "motivo": "Municipality and quantity can't be None",
                 "item": item
             })
             continue
@@ -138,7 +139,7 @@ def calcular_compensacao_lote():
         except ValueError:
             itens_sem_regra.append({
                 "index": idx,
-                "motivo": "Quantity must be an Integer value",
+                "motivo": "Quantity must be an integer",
                 "item": item
             })
             continue
@@ -154,31 +155,49 @@ def calcular_compensacao_lote():
             itens_sem_regra.append({
                 "index": idx,
                 "motivo": "No rule found",
-                "Filters used:": {
+                "filters_used": {
                     "municipality": municipality,
                     "group": group
                 }
             })
             continue
 
-        total_item = quantidade * regra.compensation
+        # ---- NEW: interpret endangered flag ----
+        is_endangered = False
+        if isinstance(endangered_flag, bool):
+            is_endangered = endangered_flag
+        elif isinstance(endangered_flag, str):
+            is_endangered = endangered_flag.strip().lower() in ("true", "1", "yes", "sim")
+
+        base_comp = regra.compensation
+        multiplier = 1.0
+        if is_endangered:
+            # use multiplier from DB; default 1 if null/0
+            multiplier = regra.endangered or 1.0
+
+        comp_por_arvore = base_comp * multiplier
+        total_item = quantidade * comp_por_arvore
         total_geral += total_item
 
         resultados.append({
             "municipality": municipality,
             "group": group,
             "quantidade": quantidade,
-            "compensacao_por_arvore": regra.compensation,
-            "compensacao_total_item": total_item
+            "endangered": is_endangered,
+            "compensacao_base": base_comp,
+            "multiplicador_endangered": multiplier,
+            "compensacao_por_arvore": comp_por_arvore,
+            "compensacao_total_item": total_item,
         })
 
     session.close()
 
     return jsonify({
-        "processed items": resultados,
-        "total compensation": total_geral,
-        "items without compensation": itens_sem_regra
+        "processed_items": resultados,
+        "total_compensation": total_geral,
+        "items_without_compensation": itens_sem_regra
     }), 200
+
 
 
 @app.route('/api/compensacao/patch', methods=['POST'])

@@ -39,12 +39,15 @@
     </nav>
 
     <!-- ========== ABA 1: ÁRVORES ISOLADAS ========== -->
+    <!-- Isolated trees tab -->
     <section id="isolatedSection" class="tab-section">
+        <h2>Árvores isoladas</h2>
+
         <section class="newItem">
             <input
                 type="number"
                 id="treeQuantity"
-                placeholder="Quantidade de árvores"
+                placeholder="Quantidade"
                 min="1"
             />
 
@@ -55,7 +58,13 @@
 
             <select id="isolatedMunicipality">
                 <option value="">Selecione o município</option>
-                <!-- opções carregadas via JS a partir de /api/municipios -->
+                <!-- opções preenchidas via JS -->
+            </select>
+
+            <!-- 🔴 NOVO: endangered dropdown, casa com treeEndangered no JS -->
+            <select id="treeEndangered">
+                <option value="false">Não ameaçada</option>
+                <option value="true">Ameaçada</option>
             </select>
 
             <button onclick="addItem()" class="addBtn">Adicionar à lista</button>
@@ -69,26 +78,21 @@
 
         <section class="items">
             <table id="myTable">
-                <thead>
-                    <tr>
-                        <th>Quantidade</th>
-                        <th>Tipo</th>
-                        <th>Municipality</th>
-                        <th>Comp./árvore</th>
-                        <th>Comp. total item</th>
-                        <th>
-                            <img
-                                src="https://cdn-icons-png.flaticon.com/512/126/126468.png"
-                                width="15"
-                                height="15"
-                                alt="Remover"
-                            >
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- linhas preenchidas via JS -->
-                </tbody>
+                <tr>
+                    <th>Quantidade</th>
+                    <th>Tipo</th>
+                    <th>Município</th>
+                    <th>Comp./árvore</th>
+                    <th>Comp. total item</th>
+                    <th>
+                        <img
+                            src="https://cdn-icons-png.flaticon.com/512/126/126468.png"
+                            width="15"
+                            height="15"
+                            alt="Remover"
+                        />
+                    </th>
+                </tr>
             </table>
         </section>
     </section>
