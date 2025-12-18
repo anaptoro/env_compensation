@@ -1,10 +1,10 @@
-# Meu Front
+# Environmental trade-off calculator
 
-Este pequeno projeto faz parte do material diático da Disciplina **Desenvolvimento Full Stack Básico** 
+This project brings the front end components of an environmental trade-off calculator.
 
-O objetivo aqui é ilutsrar o conteúdo apresentado na terceira aula.
+The goal was to provide a simple and clean interface for facilitating environmental permitting.
 
 ---
-## Como executar
+## How to run
 
-Basta fazer o download do projeto e abrir o arquivo index.html no seu browser.
+Go to the repository root folder, and then mvp_fullstack, inside that folder follow the README instructions, once Flask is running you can simply open the index.html file and the interface will work.

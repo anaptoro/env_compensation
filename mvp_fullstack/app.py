@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flasgger import Swagger 
 
 from model import Session
 from model.compensation import Compensation, SpeciesStatus
@@ -9,6 +10,8 @@ from model.utils import load_compensacao_from_csv_once,load_patch_compensacao_fr
 
 app = Flask(__name__)
 CORS(app)
+swagger = Swagger(app)
+
 STATUS_DESCRIPTIONS = {
     "EW": "presumivelmente extinta (extinta na natureza)",
     "CR": "em perigo crítico",
@@ -26,9 +29,28 @@ def init_compensation():
 
 @app.route('/')
 def home():
+    """
+    Healthcheck da API.
+
+    ---
+    tags:
+      - Info
+    responses:
+      200:
+        description: API is running
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                message:
+                  type: string
+    """
     return jsonify({
         "status": "ok",
-        "message": "Tree compensation API is running"
+        "message": "Tree trade-off API is running"
     }), 200
 
 @app.route("/api/app_municipios", methods=["GET"])
@@ -48,6 +70,44 @@ def listar_app_municipios():
 
 @app.route("/api/species/status")
 def get_species_status():
+    """
+    Verification of species status, goal is to double check if its endangered or not
+
+    ---
+    tags:
+      - Species status
+    parameters:
+      - name: family
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Family name
+      - name: specie
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Specie name
+    responses:
+      200:
+        description: List of found species/families
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  family:
+                    type: string
+                  specie:
+                    type: string
+                  status:
+                    type: string
+                  descricao:
+                    type: string
+    """
     family = request.args.get("family", "").strip()
     specie = request.args.get("specie", "").strip()  
     session = Session()
@@ -69,7 +129,7 @@ def get_species_status():
                 "family": row.family,
                 "specie": row.specie,  
                 "status": row.status,
-                "descricao": STATUS_DESCRIPTIONS.get(row.status, ""),
+                "description": STATUS_DESCRIPTIONS.get(row.status, ""),
             }
             for row in rows
         ]
@@ -81,6 +141,25 @@ def get_species_status():
 
 @app.route('/api/municipios', methods=['GET'])
 def listar_municipios():
+    """
+    Lists the municipalities with trade-off values for isolated trees.
+
+    ---
+    tags:
+      - Isolated trees
+    responses:
+      200:
+        description: Municipalities list
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                municipios:
+                  type: array
+                  items:
+                    type: string
+    """
     session = Session()
     rows = (
         session.query(Compensation.municipality)
@@ -94,6 +173,25 @@ def listar_municipios():
 
 @app.route("/api/patch_municipios", methods=["GET"])
 def listar_patch_municipios():
+    """
+    Lists the municipalities with trade-off values for patches.
+
+    ---
+    tags:
+      - Patches
+    responses:
+      200:
+        description: Municipalities list
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                municipios:
+                  type: array
+                  items:
+                    type: string
+    """
     session = Session()
     rows = (
         session.query(PatchCompensation.municipality)
@@ -108,6 +206,45 @@ def listar_patch_municipios():
 
 @app.route('/api/compensacao/lote', methods=['POST'])
 def calcular_compensacao_lote():
+    """
+    Calculate trade-off for a batch of isolated trees.
+
+    ---
+    tags:
+      - Isolated trees
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: List of isolated tree items
+        schema:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  municipality:
+                    type: string
+                    example: piracicaba
+                  group:
+                    type: string
+                    example: native
+                  quantidade:
+                    type: integer
+                    example: 5
+                  endangered:
+                    type: boolean
+                    example: true
+    responses:
+      200:
+        description: Trade-off calculation result
+      400:
+        description: Invalid input
+    """
     data = request.get_json() or {}
 
     items = data.get("items")
@@ -192,20 +329,50 @@ def calcular_compensacao_lote():
 
     return jsonify({
         "processed_items": resultados,
-        "total_compensation": total_geral,
-        "items_without_compensation": itens_sem_regra
+        "total_trade-off": total_geral,
+        "items_without_trade-off": itens_sem_regra
     }), 200
 
 
 
 @app.route('/api/compensacao/patch', methods=['POST'])
 def calcular_compensacao_patch():
+    """
+    Trade-off calculation for patches(m²).
+
+    ---
+    tags:
+      - Patch / talhão
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            patches:
+              type: array
+              items:
+                type: object
+                properties:
+                  municipality:
+                    type: string
+                    example: piracicaba
+                  area_m2:
+                    type: number
+                    example: 150.5
+    responses:
+      200:
+        description: Patch trade-off
+    """
     data = request.get_json() or {}
     print("Received data for patch:", data)  
 
     patches = data.get("patches")
     if not isinstance(patches, list) or not patches:
-        return jsonify({"erro": "Envie uma lista 'patches' com pelo menos um elemento"}), 400
+        return jsonify({"erro": "Send a list with at least one element"}), 400
 
     session = Session()
 
@@ -227,7 +394,7 @@ def calcular_compensacao_patch():
         if missing:
             patches_sem_regra.append({
                 "index": idx,
-                "motivo": f"Campos obrigatórios faltando ({', '.join(missing)})",
+                "motivo": f"Mandatory fields missing ({', '.join(missing)})",
                 "item": patch
             })
             continue
@@ -238,7 +405,7 @@ def calcular_compensacao_patch():
         except (TypeError, ValueError):
             patches_sem_regra.append({
                 "index": idx,
-                "motivo": "area_m2 não é número",
+                "motivo": "area_m2 is not a number",
                 "item": patch
             })
             continue
@@ -280,11 +447,41 @@ def calcular_compensacao_patch():
 
 @app.route("/api/compensacao/app", methods=["POST"])
 def calcular_compensacao_app():
+    """
+    Estimates trade-off for PPAs.
+
+    ---
+    tags:
+      - PPA
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            apps:
+              type: array
+              items:
+                type: object
+                properties:
+                  municipality:
+                    type: string
+                    example: piracicaba
+                  quantidade:
+                    type: number
+                    example: 2
+    responses:
+      200:
+        description: Trade-off result for PPA
+    """
     data = request.get_json() or {}
     apps = data.get("apps")
 
     if not isinstance(apps, list) or not apps:
-        return jsonify({"erro": "Envie uma lista 'apps' com pelo menos um elemento"}), 400
+        return jsonify({"erro": "Send a list with at least one element"}), 400
 
     session = Session()
     resultados = []
@@ -328,7 +525,7 @@ def calcular_compensacao_app():
         if not regra:
             apps_sem_regra.append({
                 "index": idx,
-                "motivo": "não existe regra de compensação para este município (APP)",
+                "motivo": "There is no trade-off PPA rule for this municipality",
                 "item": app_item,
             })
             continue

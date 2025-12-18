@@ -242,24 +242,24 @@ async function calculateTotal() {
       0;
 
     if (totalBox) {
-      totalBox.textContent = `Compensação total do lote: ${total}`;
+      totalBox.textContent = `Total trade-off: ${total}`;
     }
 
     
     const semRegra =
       data.items_without_compensation ||  
-      data["items without compensation"] || 
+      data["items without trade-off"] || 
       data.itens_sem_regra ||
       [];
 
     if (Array.isArray(semRegra) && semRegra.length > 0 && errorBox) {
       errorBox.textContent +=
         (errorBox.textContent ? " " : "") +
-        "Alguns itens não tiveram regra de compensação.";
+        "Some items were dismissed of trade-off.";
     }
   } catch (err) {
-    console.error("Erro na requisição /api/compensacao/lote:", err);
-    if (errorBox) errorBox.textContent = "Erro de conexão com a API.";
+    console.error("Error in /api/compensacao/lote:", err);
+    if (errorBox) errorBox.textContent = "API conection error";
   }
 }
 
@@ -274,7 +274,7 @@ function addPatchItem() {
   if (errorBoxPatch) errorBoxPatch.textContent = "";
 
   if (!municipalitySelect || !areaInput || !table) {
-    console.warn("Elementos de PATCH não encontrados.");
+    console.warn("PATCH elements not found");
     return;
   }
 
@@ -283,12 +283,12 @@ function addPatchItem() {
 
   if (!municipality) {
     if (errorBoxPatch)
-      errorBoxPatch.textContent = "Selecione um município para o patch.";
+      errorBoxPatch.textContent = "Select the municipality where the patch is located";
     return;
   }
   if (!areaStr || Number(areaStr) <= 0) {
     if (errorBoxPatch)
-      errorBoxPatch.textContent = "Informe uma área válida em m² para o patch.";
+      errorBoxPatch.textContent = "Inform a valid area (m²) for the patch";
     return;
   }
 
@@ -328,7 +328,7 @@ async function calculatePatchTotal() {
   if (!patchItems || patchItems.length === 0) {
     if (errorBoxPatch)
       errorBoxPatch.textContent =
-        "Adicione pelo menos um patch antes de calcular.";
+        "Add at least one patch";
     return;
   }
 
@@ -353,17 +353,17 @@ async function calculatePatchTotal() {
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      console.error("Erro ao fazer JSON.parse (patch):", e);
+      console.error("Error for JSON.parse (patch):", e);
       if (errorBoxPatch)
         errorBoxPatch.textContent =
-          "Resposta inválida da API (patch). Veja o console.";
+          "Inavlid answer API (patch). Check console.";
       return;
     }
 
     if (!resp.ok) {
       if (errorBoxPatch)
         errorBoxPatch.textContent =
-          data.erro || `Erro HTTP ${resp.status} na API (patch).`;
+          data.erro || `Erro HTTP ${resp.status} in API (patch).`;
       return;
     }
 
@@ -378,19 +378,19 @@ async function calculatePatchTotal() {
 
     if (totalBoxPatch) {
       totalBoxPatch.textContent =
-        "Compensação total dos patches: " +
+        "Total patches trade-off " +
         (data.total_compensacao_geral ?? 0);
     }
 
     if (data.patches_sem_regra && data.patches_sem_regra.length > 0) {
       if (errorBoxPatch)
         errorBoxPatch.textContent +=
-          " Alguns patches não tiveram regra de compensação.";
+          " Some patches didn have trade-offs";
     }
   } catch (err) {
-    console.error("Erro na requisição PATCH:", err);
+    console.error("Error in PATCH:", err);
     if (errorBoxPatch)
-      errorBoxPatch.textContent = "Erro de conexão com a API (patch).";
+      errorBoxPatch.textContent = "API connection error (patch).";
   }
 }
 
@@ -404,7 +404,7 @@ async function searchStatus() {
   if (message) message.textContent = "";
 
   if (!table) {
-    console.warn("statusTable não encontrado.");
+    console.warn("statusTable not found");
     return;
   }
 
@@ -417,7 +417,7 @@ async function searchStatus() {
   if (!family && !specie) {
     if (message)
       message.textContent =
-        "Informe pelo menos família ou espécie para buscar.";
+        "At least one family or specie must be informed";
     return;
   }
 
@@ -430,7 +430,7 @@ async function searchStatus() {
       `${API_BASE}/api/species-status?` + params.toString()
     );
     if (!resp.ok) {
-      if (message) message.textContent = "Espécie não encontrada.";
+      if (message) message.textContent = "Specie not found";
       return;
     }
 
@@ -439,7 +439,7 @@ async function searchStatus() {
 
     if (!rows.length) {
       tbody.innerHTML =
-        "<tr><td colspan='4'>Nenhum resultado encontrado.</td></tr>";
+        "<tr><td colspan='4'>No results.</td></tr>";
       return;
     }
 
@@ -454,9 +454,9 @@ async function searchStatus() {
       tbody.appendChild(tr);
     });
   } catch (err) {
-    console.error("Erro ao consultar status:", err);
+    console.error("Status error:", err);
     if (message)
-      message.textContent = "Erro ao consultar status na API.";
+      message.textContent = " API error.";
   }
 }
 
@@ -469,7 +469,7 @@ async function loadAppMunicipalities() {
     const data = await resp.json();
     const municipios = data.municipios || [];
 
-    select.innerHTML = '<option value="">Selecione o município</option>';
+    select.innerHTML = '<option value="">Select municipality</option>';
     municipios.forEach((muni) => {
       const opt = document.createElement("option");
       opt.value = muni;
@@ -477,7 +477,7 @@ async function loadAppMunicipalities() {
       select.appendChild(opt);
     });
   } catch (err) {
-    console.error("Erro ao carregar municípios de APP:", err);
+    console.error("Error in getting municipalities with PPA trade-off rules:", err);
   }
 }
 
@@ -490,7 +490,7 @@ async function consultStatus() {
   const message     = document.getElementById("statusMessage");
 
   if (!table) {
-    console.warn("statusTable não encontrado.");
+    console.warn("statusTable not found.");
     return;
   }
 
@@ -502,7 +502,7 @@ async function consultStatus() {
   const specie = specieInput ? specieInput.value.trim() : "";
 
   if (!family && !specie) {
-    if (message) message.textContent = "Informe família ou espécie para buscar.";
+    if (message) message.textContent = "Inform family or specie.";
     return;
   }
 
@@ -516,14 +516,14 @@ async function consultStatus() {
     );
 
     if (!resp.ok) {
-      if (message) message.textContent = "Erro ao consultar status na API.";
+      if (message) message.textContent = "API status error.";
       return;
     }
 
     const data = await resp.json();   
 
     if (!Array.isArray(data) || data.length === 0) {
-      if (message) message.textContent = "Espécie não encontrada.";
+      if (message) message.textContent = "Specie not found";
       return;
     }
 
@@ -538,8 +538,8 @@ async function consultStatus() {
       tbody.appendChild(tr);
     });
   } catch (err) {
-    console.error("Erro ao consultar status:", err);
-    if (message) message.textContent = "Erro de conexão com a API.";
+    console.error("Status error:", err);
+    if (message) message.textContent = "API connection error";
   }
 }
 
@@ -550,7 +550,7 @@ function addAppItem() {
   const errorBoxApp = document.getElementById("errorBoxApp");
 
   if (!municipalitySelect || !quantityInput || !table) {
-    console.warn("Elementos de APP não encontrados.");
+    console.warn("PPA elements not found");
     return;
   }
 
@@ -560,12 +560,12 @@ function addAppItem() {
   const quantityStr = quantityInput.value;
 
   if (!municipality) {
-    if (errorBoxApp) errorBoxApp.textContent = "Selecione um município.";
+    if (errorBoxApp) errorBoxApp.textContent = "Select a municipality";
     return;
   }
   if (!quantityStr || Number(quantityStr) <= 0) {
     if (errorBoxApp)
-      errorBoxApp.textContent = "Informe uma quantidade / área válida.";
+      errorBoxApp.textContent = "Inform valid values for quantity/area";
     return;
   }
 
@@ -603,7 +603,7 @@ async function calculateAppTotal() {
 
   if (!appItems.length) {
     if (errorBoxApp)
-      errorBoxApp.textContent = "Adicione pelo menos um item de APP.";
+      errorBoxApp.textContent = "Add at least one PPA value";
     return;
   }
 
@@ -643,18 +643,18 @@ async function calculateAppTotal() {
 
     const total = data.total_compensacao_geral ?? 0;
     if (totalBoxApp) {
-      totalBoxApp.textContent = `Compensação total de APP: ${total}`;
+      totalBoxApp.textContent = `PPA total compensation: ${total}`;
     }
 
     const semRegra = data.apps_sem_regra || [];
     if (semRegra.length && errorBoxApp) {
       errorBoxApp.textContent +=
-        " Alguns itens de APP não tiveram regra de compensação.";
+        " Some items did not need trade-off";
     }
   } catch (err) {
-    console.error("Erro na requisição /api/compensacao/app:", err);
+    console.error("Error in o /api/compensacao/app:", err);
     if (errorBoxApp)
-      errorBoxApp.textContent = "Erro de conexão com a API (APP).";
+      errorBoxApp.textContent = "API connection error(PPA).";
   }
 }
 
@@ -673,7 +673,7 @@ window.calculateAppTotal = calculateAppTotal;
 
 
 window.addEventListener("DOMContentLoaded", () => {
-  console.log("scripts.js carregado - DOM pronto");
+  console.log("scripts.js loaded - DOM pronto");
   setMode("isolated");   
   loadMunicipalities();  
   loadAppMunicipalities();
