@@ -27,6 +27,7 @@ You need to create a virtual env and install the libraries listed on `requiremen
 ```
 In order to run the API, inside your virtual env:
 
+```
 (env)$cd mvp_fullstack
 
 (env)$ python -m flask --app app run --host 0.0.0.0 --port 5002
