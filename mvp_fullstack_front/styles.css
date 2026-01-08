@@ -156,11 +156,11 @@ select:focus {
     max-width: 140px;
 }
 
-
 #treeGroup,
 #isolatedMunicipality,
 #treeMunicipality,
 #patchMunicipality,
+#patchSuccessionalStage,
 #appMunicipality,
 #treeEndangered,
 #statusFamily,
@@ -220,7 +220,7 @@ select:focus {
     font-size: 1rem;
 }
 
-/* ========== Tables ========== */
+
 .items {
     margin: 0;
     padding: 0;
@@ -323,4 +323,24 @@ th img {
     table {
         font-size: 13px;
     }
+}
+
+.site-footer {
+    margin-top: 24px;
+    padding: 16px 24px;
+    text-align: center;
+    background: rgba(3, 20, 12, 0.9);
+    color: #e4f7ea;
+    font-size: 0.9rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.site-footer a {
+    color: #9be7b0;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.site-footer a:hover {
+    text-decoration: underline;
 }

@@ -1,23 +1,31 @@
-# Environmental trade-off calculator
-Environmental Trade-off Calculator 
+# Environmental Trade-off Calculator
 
-This project is a small full-stack web app to help estimate environmental tree compensation required under local(Sao Paulo state - SEMIL nº 02/2024) regulations.
+This project is a small full-stack web app to estimate **environmental tree compensation** required under São Paulo state regulations (Resolução SEMIL nº 02/2024).
 
-The frontend is a simple HTML/CSS/JavaScript single page with tabs for each workflow, calling the Flask endpoints via fetch and rendering tables with the detailed results and totals.
+The **frontend** is a simple HTML/CSS/JavaScript single page application with tabs for each workflow. It calls the Flask API via `fetch` and renders tables with detailed results and totals.
 
-The backend is a Flask API (with Swagger/OpenAPI docs) that reads compensation rules from CSV files and a SQLite database. It supports three main operations:
+The **backend** is a Flask API (with Swagger/OpenAPI docs) that reads compensation rules from CSV files into a SQLite database. It currently supports four main operations:
 
-Isolated trees – given quantity, group (native/exotic), municipality and whether the species is endangered, the API returns the tree-level trade-off and the total trade-off per item and per batch.
+- **Isolated trees**  
+  Given the quantity of trees, group (*native* / *exotic*), municipality, and whether the species is endangered, the API returns:
+  - compensation per tree
+  - compensation per item
+  - total compensation for the entire batch
 
-Forest patches / area (m²) – given municipality, successional stage, and patch area, it looks up the compensation factor (per m²) and computes the total patch trade-off.
+- **Forest patches / area (m²)**  
+  Given municipality, successional stage, and patch area, the API looks up a compensation factor (per m²) and computes the total compensation for the patch or set of patches.
 
-Permanent Preservation Area(PPA) – similar to patches, but using a separate rules table for PPA trade-off.
+- **Permanent Preservation Area (PPA)**  
+  Similar to patches, but using a dedicated rules table for PPA compensation.
 
-Species conservation status – query a species (family + scientific name) and return its IUCN-style status (EW, CR, EN, VU, etc.).
+- **Species conservation status**  
+  Query by family and/or scientific name and retrieve an IUCN-style status (`EW`, `CR`, `EN`, `VU`, etc.).
 
-For both cases the compensation will be automatically calculated based on individual municipalities environmental rules.
+In all cases, compensation is calculated automatically based on the **municipality-specific rules** defined in SEMIL 02/2024.
 
-All the trade-off rules here were extracted from the SEMIL 02/2024 official documentation (**Resolução SEMIL nº 02/2024** (pages 30–34, Annex II))
+All trade-off rules used here were extracted from the official document  
+**“Resolução SEMIL nº 02/2024” (Annex II, pages 30–34)**.
+
 
 ---
 ## How to run

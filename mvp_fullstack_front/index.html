@@ -61,8 +61,8 @@
 
 
             <select id="treeEndangered">
-                <option value="false">Yes</option>
-                <option value="true">Not</option>
+                <option value="false">Endangered - Yes</option>
+                <option value="true">Endangered - Not</option>
             </select>
 
             <button onclick="addItem()" class="addBtn">Add to list</button>
@@ -100,33 +100,41 @@
         <section class="newItem">
             <select id="patchMunicipality">
                 <option value="">Select municipality</option>
-                
             </select>
-
+    
+            <!-- NEW: successional stage select -->
+            <select id="patchSuccessionalStage">
+                <option value="">Successional Stage</option>
+                <option value="initial">early</option>
+                <option value="mid">mid</option>
+                <option value="late">late</option>
+            </select>
+    
             <input
                 type="number"
                 id="patchArea"
                 placeholder="Patch area (m²)"
                 min="1"
             />
-
+    
             <button onclick="addPatchItem()" class="addBtn">Add patch</button>
             <button onclick="calculatePatchTotal()" class="calcBtn">Calculate trade-off</button>
         </section>
-
+    
+        
         <section class="messages">
             <div id="errorBoxPatch"></div>
-            <div id="totalBoxPatch">Total batch compensation: 0</div>
+            <div id="totalBoxPatch">Total batch trade-off: 0</div>
         </section>
-
+    
         <section class="items">
             <table id="patchTable">
                 <thead>
                     <tr>
                         <th>Municipality</th>
-                        <th>Area (m²)</th>
-                        <th>Trade-off/m²</th>
-                        <th>Total trade-off patch</th>
+                        <th>Área (m²)</th>
+                        <th>Trade-off rate/m²</th>
+                        <th>Trade-off. total patch</th>
                         <th>
                             <img
                                 src="https://cdn-icons-png.flaticon.com/512/126/126468.png"
@@ -137,12 +145,11 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody>
-                    
-                </tbody>
+                <tbody></tbody>
             </table>
         </section>
     </section>
+    
 
     
     <section id="statusSection" class="tab-section" style="display:none;">
@@ -182,7 +189,7 @@
 
         <input type="number"
                id="appQuantity"
-               placeholder="Quantity/area"
+               placeholder="Area m2"
                min="0" />
 
         <button onclick="addAppItem()" class="addBtn">Add PPA</button>
@@ -191,7 +198,7 @@
 
     <section class="messages">
         <div id="errorBoxApp"></div>
-        <div id="totalBoxApp">Total PPA compensation: 0</div>
+        <div id="totalBoxApp">Total PPA trade-off: 0</div>
     </section>
 
     <section class="items">
@@ -212,8 +219,18 @@
         </table>
     </section>
 </section>
-     
-    
-    <script src="scripts.js"></script>
+
+<footer class="site-footer">
+    <p>Built for the Environmental Trade-off Calculator project</p>
+    <p>
+        <a href="mail to:anapaolagomes@hotmail.com">anapaolagomes@hotmail.com</a>
+        ·
+        <a href="https://github.com/anaptoro" target="_blank" rel="noopener noreferrer">
+            GitHub
+        </a>
+    </p>
+</footer>
+
+<script src="scripts.js"></script>
 </body>
 </html>

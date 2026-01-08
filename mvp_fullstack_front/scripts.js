@@ -5,7 +5,7 @@ let isolatedItems = [];
 let patchItems = [];
 let appItems = [];
 
-
+// --------- helpers ---------
 function byId(id) {
   return document.getElementById(id);
 }
@@ -37,7 +37,6 @@ function setActiveTab(tabId) {
   });
 }
 
-
 function setMode(mode) {
   currentMode = mode;
 
@@ -56,9 +55,9 @@ function setMode(mode) {
   }
 }
 
-
+// --------- load municipalities for all tabs ---------
 async function loadMunicipalities() {
-
+  // Isolated
   try {
     const resp = await fetch(`${API_BASE}/api/municipios`);
     const data = await resp.json();
@@ -73,7 +72,7 @@ async function loadMunicipalities() {
       });
     }
   } catch (err) {
-    console.error("Erro carregando municípios (isolated):", err);
+    console.error("Error loading municipalities (isolated):", err);
   }
 
   // Patch
@@ -109,7 +108,7 @@ async function loadMunicipalities() {
       });
     }
   } catch (err) {
-    console.error("Error loading municipalities (ppa):", err);
+    console.error("Error loading municipalities (PPA):", err);
   }
 }
 
@@ -125,7 +124,7 @@ function addItem() {
   if (errorBox) errorBox.textContent = "";
 
   if (!qtyInput || !groupSelect || !municipalitySelect || !endangeredSelect || !table) {
-    console.warn("Isolated trees for municipality elements not found.");
+    console.warn("Isolated trees form elements not found.");
     return;
   }
 
@@ -147,10 +146,10 @@ function addItem() {
   const endangered = endangeredValue === "true";
 
   const item = {
-    quantidade: quantidade,
-    group: group,
-    municipality: municipality,
-    endangered: endangered,
+    quantidade,
+    group,
+    municipality,
+    endangered,
   };
   isolatedItems.push(item);
 
@@ -173,7 +172,7 @@ function addItem() {
   delCell.classList.add("delete-btn");
   delCell.style.cursor = "pointer";
   delCell.onclick = function () {
-    const index = row.rowIndex - 1; 
+    const index = row.rowIndex - 1;
     if (index >= 0 && index < isolatedItems.length) {
       isolatedItems.splice(index, 1);
     }
@@ -193,9 +192,8 @@ async function calculateTotal() {
     return;
   }
 
-
   errorBox.textContent = "";
-  totalBox.textContent = "Total batch compensation: 0";
+  totalBox.textContent = "Total batch trade-off: 0";
 
   if (!Array.isArray(isolatedItems) || isolatedItems.length === 0) {
     errorBox.textContent = "Add at least one entry";
@@ -222,7 +220,7 @@ async function calculateTotal() {
 
     const processed =
       data["processed items"] ||
-      data.processed_items   ||
+      data.processed_items ||
       data.itens_processados ||
       [];
 
@@ -231,7 +229,6 @@ async function calculateTotal() {
         const row = table.rows[idx + 1]; 
         if (!row) return;
 
-        
         if (row.cells[3]) {
           row.cells[3].textContent =
             item.compensacao_por_arvore !== undefined
@@ -250,12 +247,12 @@ async function calculateTotal() {
     
     let total;
 
-    
     const possibleTotalKeys = [
-      "total compensation",      
-      "total_compensation",      
+      "total compensation",
+      "total_compensation",
       "total_compensacao_geral",
       "total_compensacao_lote",
+      "total_trade-off",          
       "total",
     ];
 
@@ -270,7 +267,7 @@ async function calculateTotal() {
       }
     }
 
-    
+
     if (total === undefined) {
       for (const [key, value] of Object.entries(data)) {
         if (typeof value === "number" && /total/i.test(key)) {
@@ -279,26 +276,19 @@ async function calculateTotal() {
         }
       }
     }
+    if (total === undefined) total = 0;
 
-    
-    if (total === undefined) {
-      total = 0;
-    }
-
-    
     if (typeof total === "string") {
       const parsed = Number(total);
-      if (!Number.isNaN(parsed)) {
-        total = parsed;
-      }
+      if (!Number.isNaN(parsed)) total = parsed;
     }
 
-    totalBox.textContent = `Compensação total do lote: ${total}`;
+    totalBox.textContent = `Total batch trade-off: ${total}`;
 
-    
     const semRegra =
       data["items without compensation"] ||
       data.items_without_compensation ||
+      data["items_without_trade-off"] ||
       data.itens_sem_regra ||
       [];
 
@@ -308,39 +298,48 @@ async function calculateTotal() {
         "Alguns itens não tiveram regra de compensação.";
     }
   } catch (err) {
-    console.error("Erro na requisição /api/compensacao/lote:", err);
-    errorBox.textContent = "Erro de conexão com a API.";
+    console.error("Request error at /api/compensacao/lote:", err);
+    errorBox.textContent = "API connection error.";
   }
 }
 
 
 function addPatchItem() {
   const muniSelect = byId("patchMunicipality");
+  const stageSelect = byId("patchSuccessionalStage"); 
   const areaInput = byId("patchArea");
   const errorBox = byId("errorBoxPatch");
   const table = byId("patchTable").getElementsByTagName("tbody")[0];
 
   if (errorBox) errorBox.textContent = "";
 
-  if (!muniSelect || !areaInput || !table) {
+  if (!muniSelect || !areaInput || !table || !stageSelect) {
     console.warn("Patch form elements not found.");
     return;
   }
 
   const municipality = muniSelect.value;
   const areaStr = areaInput.value;
-
+  const stage = stageSelect.value; 
   if (!municipality) {
-    if (errorBox) errorBox.textContent = "Selecione um município.";
+    if (errorBox) errorBox.textContent = "Select a municipality.";
+    return;
+  }
+  if (!stage) {
+    if (errorBox) errorBox.textContent = "Selecione o estágio sucessional.";
     return;
   }
   if (!areaStr || Number(areaStr) <= 0) {
-    if (errorBox) errorBox.textContent = "Informe uma área válida.";
+    if (errorBox) errorBox.textContent = "Inform a valid area";
     return;
   }
 
   const area_m2 = Number(areaStr);
-  const item = { municipality: municipality, area_m2: area_m2 };
+  const item = {
+    municipality,
+    area_m2,
+    successional_stage: stage, 
+  };
   patchItems.push(item);
 
   const row = table.insertRow(-1);
@@ -378,7 +377,7 @@ async function calculatePatchTotal() {
   if (totalBox) totalBox.textContent = "";
 
   if (!Array.isArray(patchItems) || patchItems.length === 0) {
-    if (errorBox) errorBox.textContent = "Adicione pelo menos um patch antes de calcular.";
+    if (errorBox) errorBox.textContent = "Add at least one patch";
     return;
   }
 
@@ -407,10 +406,10 @@ async function calculatePatchTotal() {
         const row = tableBody.rows[idx];
         if (!row) return;
 
-        var compPerM2 = item.compensacao_por_m2;
+        let compPerM2 = item.compensacao_por_m2;
         if (compPerM2 === undefined || compPerM2 === null) compPerM2 = "";
 
-        var compTotal = item.compensacao_total_patch;
+        let compTotal = item.compensacao_total_patch;
         if (compTotal === undefined || compTotal === null) compTotal = "";
 
         if (row.cells[2]) row.cells[2].textContent = compPerM2;
@@ -418,13 +417,13 @@ async function calculatePatchTotal() {
       });
     }
 
-    var total = data.total_compensacao_geral;
+    let total = data.total_compensacao_geral;
     if (total === undefined || total === null) total = 0;
     total = Number(total);
     if ((isNaN(total) || total === 0) && Array.isArray(processed) && processed.length > 0) {
       total = 0;
       processed.forEach(function (it) {
-        var v = Number(it.compensacao_total_patch);
+        const v = Number(it.compensacao_total_patch);
         if (!isNaN(v)) total += v;
       });
     }
@@ -490,7 +489,7 @@ async function consultStatus() {
       row.insertCell(0).textContent = item.family || "";
       row.insertCell(1).textContent = item.specie || "";
       row.insertCell(2).textContent = item.status || "";
-      row.insertCell(3).textContent = item.descricao || "";
+      row.insertCell(3).textContent = item.description || item.descricao || "";
     });
   } catch (err) {
     console.error("Erro ao consultar status:", err);
@@ -498,7 +497,7 @@ async function consultStatus() {
   }
 }
 
-
+// ---------- APP ----------
 function addAppItem() {
   const muniSelect = byId("appMunicipality");
   const qtyInput = byId("appQuantity");
@@ -525,7 +524,7 @@ function addAppItem() {
   }
 
   const quantidade = Number(qtyStr);
-  const item = { municipality: municipality, quantidade: quantidade };
+  const item = { municipality, quantidade };
   appItems.push(item);
 
   const row = tableBody.insertRow(-1);
@@ -580,7 +579,7 @@ async function calculateAppTotal() {
     if (!resp.ok) {
       if (errorBox) {
         errorBox.textContent =
-          data.erro || data.error || ("Erro HTTP " + resp.status + " in API (PPA).");
+          data.erro || data.error || ("Error HTTP " + resp.status + " in API (PPA).");
       }
       return;
     }
@@ -592,10 +591,10 @@ async function calculateAppTotal() {
         const row = tableBody.rows[idx];
         if (!row) return;
 
-        var compUnit = item.compensacao_por_unidade;
+        let compUnit = item.compensacao_por_unidade;
         if (compUnit === undefined || compUnit === null) compUnit = "";
 
-        var compTotal = item.compensacao_total_app;
+        let compTotal = item.compensacao_total_app;
         if (compTotal === undefined || compTotal === null) compTotal = "";
 
         if (row.cells[2]) row.cells[2].textContent = compUnit;
@@ -603,19 +602,19 @@ async function calculateAppTotal() {
       });
     }
 
-    var total = data.total_compensacao_geral;
+    let total = data.total_compensacao_geral;
     if (total === undefined || total === null) total = 0;
     total = Number(total);
     if ((isNaN(total) || total === 0) && Array.isArray(processed) && processed.length > 0) {
       total = 0;
       processed.forEach(function (it) {
-        var v = Number(it.compensacao_total_app);
+        const v = Number(it.compensacao_total_app);
         if (!isNaN(v)) total += v;
       });
     }
 
     if (totalBox) {
-      totalBox.textContent = "Total PPA compensation: " + total;
+      totalBox.textContent = "Total PPA trade-off: " + total;
     }
 
     const semRegra = data.apps_sem_regra || [];
@@ -625,7 +624,7 @@ async function calculateAppTotal() {
         "Some PPA items dont have compensation rules.";
     }
   } catch (err) {
-    console.error("Errow requesting PPA:", err);
+    console.error("Erro requesting PPA:", err);
     if (errorBox) errorBox.textContent = "Connection error";
   }
 }
